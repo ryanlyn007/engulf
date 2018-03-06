@@ -1,0 +1,9 @@
+{
+    "type": "sftp",
+    "host": "raspberrypi.local",
+    "username": "pi",
+    "password": "raspberry",
+    "port": 21,
+    "remotePath": "/home/pi",
+    "uploadOnSave": false
+}
