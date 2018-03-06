@@ -4,7 +4,7 @@ var dualshockLibrary = require('./library/dualshock');
 var express = require('express');
 var http = require('http');
 var https = require('https');
-var app = express(),  //var app = http.createServer(handler);
+var app = express(),  //var app = http.createServer(handler); 
     app = module.exports.app = express();
 var url = require('url');
 var HID = require('node-hid');
