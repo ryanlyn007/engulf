@@ -2,9 +2,7 @@ var library_global = require('./library/global');
 var socketioLibrary = require('./library/socketconnection');
 var dualshockLibrary = require('./library/dualshock');
 var express = require('express');
-var http = require('http');
-var https = require('https');
-var app = express(),  //var app = http.createServer(handler); 
+var app = express(),
     app = module.exports.app = express();
 var url = require('url');
 var HID = require('node-hid');
@@ -13,12 +11,16 @@ const Map = require('es6-map');
 const { ActionsSdkApp } = require('actions-on-google');
 //const bodyParser = require('body-parser');
 //var gpio = require("pi-gpio"); //Note: will only be runnable on raspberry
+
+//http
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+http.listen(5000); //This will open a server at localhost:5000. Navigate to this in your browser.
+
+//https
+/*
+var https = require('https');
 var forceSsl = require('express-force-ssl');
-
-//app.listen(5000);  //This will open a server at localhost:5000. Navigate to this in your browser.
-//var http = require('http');
-//http.createServer(app).listen(80);
-
 var key = fs.readFileSync('./encryption/server.key');
 var cert = fs.readFileSync( './encryption/server.crt' );
 var ca = fs.readFileSync( './encryption/ca.crt' );
@@ -34,6 +36,10 @@ var secureServer = https.createServer(options, app).listen('5000', function() {
 });
 var io = require('socket.io')(secureServer);
 app.use(forceSsl);
+*/
+
+
+//-------application start--------------
 
 // Create functions to handle intents here
 function getPrice(assistant) {
@@ -51,55 +57,31 @@ function getPrice(assistant) {
     }
   });
 }
-
-//function handler (req, res) { // Http handler function
-
-    // Using URL to parse the requested URL
-    //var path = url.parse(req.url).pathname;
-
-    // Managing the root route
-    // if (path == '/') {
-    //     index = fs.readFile(__dirname+'/public/index.html',
-    //         function(error,data) {
-    //             if (error) {
-    //                 res.writeHead(500);
-    //                 return res.end("Error: unable to load index.html");
-    //             }
-    //             res.writeHead(200,{'Content-Type': 'text/html'});
-    //             res.end(data);
-    //         });
-    //} else if (path.indexOf('/endpoint')>=0) {
-    app.get('/endpoint', function (req, res, next) {
+app.post('/endpoint', function (req, res) {
         var headers = {};
         headers['Content-Type'] = 'application/json; charset=utf-8';
-        headers['X-Requested-With'] = 'XMLHttpRequest';
+        //headers['X-Requested-With'] = 'XMLHttpRequest';
         headers['Access-Control-Allow-Origin'] = '*';
         headers['Access-Control-Allow-Headers'] = 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With';
-        headers['Access-Control-Allow-Methods'] = 'PUT, POST, GET, DELETE, OPTIONS';
+        headers['Access-Control-Allow-Methods'] = 'POST';
         headers["Access-Control-Max-Age"] = '86400';
         res.writeHead(200, headers);
         var q = url.parse(req.url, true).query;
         var txt = '{"x":' + library_global.getRandomInt(100) + ',"y":' + library_global.getRandomInt(100) + '}';   //var txt = "([[3,1],[4,2],[5,6],[6,3],[7,-2],[8,-1],[9,3],[10,7],[11,12],[12,13]])";
         res.write(txt);
         res.end();
-      });
-    //} else if (path.indexOf('/bitcoin')>=0) {
-    app.get('/bitcoin', function (req, res, next) {
-        console.log("req.body:" + req.body);
+});
+app.get('/bitcoin', function (req, res) {
+        console.log("req.body:" + req.q );
         var headers = {};
         headers['Content-Type'] = 'application/json; charset=utf-8';
-        headers['X-Requested-With'] = 'XMLHttpRequest';
+        //headers['X-Requested-With'] = 'XMLHttpRequest';
         headers['Access-Control-Allow-Origin'] = '*';
         headers['Access-Control-Allow-Headers'] = 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With';
         headers['Access-Control-Allow-Methods'] = 'PUT, POST, GET, DELETE, OPTIONS';
         headers["Access-Control-Max-Age"] = '86400';
         res.writeHead(200, headers);
 
-        // Instantiate a new API.AI assistant object.
-        req.body = "nothing";
-
-        console.log("htt:" + http.get("http://dfdfd") );
-        req = this.http;
         const appSDK = new ActionsSdkApp({ request: req, response: res });
 
         // Declare constants for your action and parameter names
@@ -111,12 +93,7 @@ function getPrice(assistant) {
 
         // Route requests to the proper handler functions via the action router.
         appSDK.handleRequest(actionRouter);
-      });
-    // } else {
-    //     res.writeHead(404);
-    //     res.end("Error: 4041 - File not found:");
-    // }
-//}
+});
 
 var _socketio = new socketioLibrary(io); //class
 
