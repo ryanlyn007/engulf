@@ -1,16 +1,24 @@
+'use strict';
 var library_global = require('./library/global');
 var socketioLibrary = require('./library/socketconnection');
 var dualshockLibrary = require('./library/dualshock');
 var express = require('express');
 var app = express(),
     app = module.exports.app = express();
+var request = require('ajax-request');
 var url = require('url');
 var HID = require('node-hid');
 var fs = require('fs');
 const Map = require('es6-map');
-const { ActionsSdkApp } = require('actions-on-google');
-//const bodyParser = require('body-parser');
+const DialogflowApp = require('actions-on-google').DialogflowApp;
+const bodyParser = require('body-parser');
 //var gpio = require("pi-gpio"); //Note: will only be runnable on raspberry
+
+//initial
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({type: 'application/json'}));
+// Declare constants for your action and parameter names
+const PRICE_ACTION = 'price';  // The action name from the API.AI intent
 
 //http
 var http = require('http').Server(app);
@@ -40,23 +48,6 @@ app.use(forceSsl);
 
 
 //-------application start--------------
-
-// Create functions to handle intents here
-function getPrice(assistant) {
-  console.log('** Handling action: ' + PRICE_ACTION);
-  let requestURL = 'https://blockchain.info/q/24hrprice';
-  request(requestURL, function(error, response) {
-    if(error) {
-      console.log("got an error: " + error);
-      next(error);
-    } else {
-      let price = response.body;
-      logObject('the current bitcoin price: ' , price);
-      // Respond to the user with the current temperature.
-      assistant.tell("The demo price is  " + price);
-    }
-  });
-}
 app.post('/endpoint', function (req, res) {
         var headers = {};
         headers['Content-Type'] = 'application/json; charset=utf-8';
@@ -71,30 +62,33 @@ app.post('/endpoint', function (req, res) {
         res.write(txt);
         res.end();
 });
-app.get('/bitcoin', function (req, res) {
-        console.log("req.body:" + req.q );
-        var headers = {};
-        headers['Content-Type'] = 'application/json; charset=utf-8';
-        //headers['X-Requested-With'] = 'XMLHttpRequest';
-        headers['Access-Control-Allow-Origin'] = '*';
-        headers['Access-Control-Allow-Headers'] = 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With';
-        headers['Access-Control-Allow-Methods'] = 'PUT, POST, GET, DELETE, OPTIONS';
-        headers["Access-Control-Max-Age"] = '86400';
-        res.writeHead(200, headers);
+app.post('/bitcoin', function (req, res) {
+        const appSDK = new DialogflowApp({ request: req, response: res });
 
-        const appSDK = new ActionsSdkApp({ request: req, response: res });
-
-        // Declare constants for your action and parameter names
-        const PRICE_ACTION = 'price';  // The action name from the API.AI intent
+        // Create functions to handle intents here
+        function getPrice() {
+          console.log('** Handling action: ' + PRICE_ACTION);
+          let requestURL = 'https://blockchain.info/q/24hrprice';
+          request(requestURL, function(error, response, body) {
+            if(error) {
+              console.log("got an error: " + error);
+              next(error);
+            } else {
+              let price = body;
+              console.log('the current bitcoin price: ' , price);
+              // Respond to the user with the current temperature.
+              appSDK.tell("The demo price is  " + price);
+            }
+          });
+        }
 
         // Add handler functions to the action router.
-        let actionRouter = new Map();
-        actionRouter.set(PRICE_ACTION, getPrice);
+        let actionMap = new Map();
+        actionMap.set(PRICE_ACTION, getPrice);
 
         // Route requests to the proper handler functions via the action router.
-        appSDK.handleRequest(actionRouter);
+        appSDK.handleRequest(actionMap);
 });
 
 var _socketio = new socketioLibrary(io); //class
-
 var _dualshock = new dualshockLibrary(io); //class

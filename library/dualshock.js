@@ -32,7 +32,7 @@ function gotData(err, data) {
     var currentValue2 = storage.getItemSync('data17');
     if (previousValue1 != currentValue1 || previousValue2 !=currentValue2) {
       this.socket.emit ('ps3Controller', "data15:" + currentValue1 + ":" + "data17:" + currentValue2);
-      console.log("gotData:ps3Controller:" + this.socket);
+      //console.log("gotData:ps3Controller:" + this.socket);
     }
     this.read(gotData.bind(this));
 };
@@ -64,27 +64,6 @@ module.exports = class DualShock {
             //});
         });
     };
-    // setRumbleLed(hidDevice, rumbleL, rumbleR, led_cmd ) {
-    //     hidDevice.write([
-    //         0x01,     // <- feature report id
-    //         0x00, 0xfe, rumbleL, 0xfe, rumbleR,
-    //         0x00, 0x00, 0x00, 0x00, led_cmd,
-    //         0xff, 0x27, 0x10, 0x00, 0x32,
-    //         0xff, 0x27, 0x10, 0x00, 0x32,
-    //         0xff, 0x27, 0x10, 0x00, 0x32,
-    //         0xff, 0x27, 0x10, 0x00, 0x32,
-    //         0x00, 0x00, 0x00, 0x00, 0x00,
-    //         0x00, 0x00, 0x00, 0x00, 0x00,
-    //         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    //     ]);
-    // };
-    // gotData(err, data) {
-    //     console.log('got ps3 data', data[6] + ":" + data[7] + ":" + data[8] +":" +  data[9]);   // map left & right d-pad to rumble, and right action buttons to LEDs
-    //     setRumbleLed( this.hid, data[15], data[17], data[3]>>3 );
-    //     storage.setItemSync('data15',data[15]);
-    //     storage.setItemSync('data17',data[17]);
-    //     this.read(this.gotData.bind(this));
-    // };
 }
 
 // module.exports = class DualShock {
